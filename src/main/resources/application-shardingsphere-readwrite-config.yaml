@@ -1,0 +1,71 @@
+# JDBC 逻辑库名称。在集群模式中，使用该参数来联通 ShardingSphere-JDBC 与 ShardingSphere-Proxy。
+# 默认值：logic_db
+databaseName: logic_db
+
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  master:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://127.0.0.1:3306/db_user?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    # 连接池配置
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+  slave1:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://127.0.0.1:3307/db_user?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    # 连接池配置
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+  slave2:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://127.0.0.1:3308/db_user?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    # 连接池配置
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+rules:
+#单表规则用于指定哪些单表需要被 ShardingSphere 管理
+  - !SINGLE
+    tables:
+      - "*.*" # 加载全部单表
+#      - ds_0.t_single # 加载指定单表
+#      - ds_1.* # 加载指定数据源中的全部单表
+  - !READWRITE_SPLITTING
+    dataSourceGroups:
+      readwrite_ds: #读写分离逻辑数据源名称
+        writeDataSourceName: master #写库数据源名称
+        readDataSourceNames: #读库数据源名称
+          - slave1
+          - slave2
+        transactionalReadQueryStrategy: PRIMARY #事务内读请求的路由策略，可选值：PRIMARY（路由至主库）、FIXED（同一事务内路由至固定数据源）、DYNAMIC（同一事务内路由至非固定数据源）。默认值：DYNAMIC
+        loadBalancerName: roundRobin # 负载均衡算法名称
+# 负载均衡算法配置
+    loadBalancers:
+      # 负载均衡算法名称
+      roundRobin:
+        type: ROUND_ROBIN # ROUND_ROBIN:负载均衡算法类型  RANDOM:随机负载均衡算法 WEIGHT:权重负载均衡算法
+#通用配置
+props:
+  sql-show: true #是否在日志中打印 SQL打印 SQL 可以帮助开发者快速定位系统问题。日志内容包含：逻辑 SQL，真实 SQL 和 SQL 解析结果。如果开启配置，日志将使用 Topic ShardingSphere-SQL，日志级别是 INFO

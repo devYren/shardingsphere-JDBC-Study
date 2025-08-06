@@ -1,0 +1,23 @@
+server:
+  port: 43541
+
+spring:
+  application:
+    name: sharding-jdbc-demo-yren
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:application-shardingsphere-horizontal-config.yaml
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    # 日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 开启驼峰命名
+    map-underscore-to-camel-case: true
+
+# 日志配置
+logging:
+  level:
+    com.cooperation.mapper: debug
+    org.apache.shardingsphere: info
