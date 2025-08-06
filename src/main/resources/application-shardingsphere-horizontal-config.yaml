@@ -46,37 +46,39 @@ dataSources:
     maxLifetime: 1800000
 
 rules:
+  # 数据分片，数据究竟写入/读取 哪个库，哪个表，按什么算法来确定
 - !SHARDING
   tables:
+    # 逻辑表名称
     t_user:
-      actualDataNodes: server-user.t_user
+      actualDataNodes: server-user.t_user # 由数据源名 + 表名组成
+    # 逻辑表名称
     t_order:
-      actualDataNodes: server-order${0..1}.t_order${0..1}
-      #分库配置
-      databaseStrategy:
-        standard:
-          shardingColumn: user_id
-          shardingAlgorithmName: database_inline
-      #分表配置
-      tableStrategy:
+      actualDataNodes: server-order${0..1}.t_order${0..1} # 由数据源名 + 表名组成（参考 Inline 语法规则）
+      databaseStrategy: #分库配置 缺省表示使用默认分库策略，分片策略只能选其一
+        standard: # 用于单分片键的标准分片场景
+          shardingColumn: user_id # 分片列名称
+          shardingAlgorithmName: database_inline  # 分片算法名称（自定义）会与下方shardingAlgorithms对应
+      tableStrategy: # 分表策略，同分库策略
         standard:
           shardingColumn: order_no
-          shardingAlgorithmName: t_order_inline
-#      keyGenerateStrategy:
+          shardingAlgorithmName: t_order_inline # 分片算法名称（自定义）会与下方shardingAlgorithms对应
+#      keyGenerateStrategy: # 分布式序列策略
 #        column: id # 自增列名称，缺省表示不使用自增主键生成器
-#        keyGeneratorName: snowflake # 分布式序列算法名称
-  #默认数据库分片策略
-  defaultDatabaseStrategy:
-    none:
-  defaultTableStrategy:
-    none:
-  #分片算法
+#        keyGeneratorName: snowflake # 分布式序列算法名称,这里是个名字，下边(shardingAlgorithms)有定义
+
+#  defaultDatabaseStrategy: #默认数据库分片策略
+#  defaultTableStrategy: #默认的表分片策略
+#  defaultKeyGenerateStrategy: # 默认的分布式序列策略
+#  defaultShardingColumn: # 默认分片列名称
+
+  # 分片算法配置
   shardingAlgorithms:
-    database_inline:
-      type: INLINE
-      props:
-        algorithm-expression: server-order$->{user_id % 2}
-    t_order_inline:
+    database_inline: # 自定义的算法名称，上边有用到
+      type: INLINE # 分片算法类型,有多钟可参考官网 https://shardingsphere.apache.org/document/5.5.2/cn/user-manual/common-config/builtin-algorithm/sharding/
+      props: # 分片算法属性配置
+        algorithm-expression: server-order${user_id % 2} #根据用户id 对2（因为有2个数据库）取余数，type 为INLINE 的表达式写发可以找官网
+    t_order_inline: # 自定义的算法名称，上边有用到
       type: CLASS_BASED
       props:
         strategy: STANDARD
