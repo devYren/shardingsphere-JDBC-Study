@@ -9,15 +9,16 @@ import java.math.BigDecimal;
 
 /**
  * @author ChenYu ren
- * @date 2025/8/1
+ * @date 2025/8/13
  */
-@TableName("t_order")
+@TableName("t_order_item")
 @Data
-public class Order {
-//    @TableId(type = IdType.AUTO)
-//    @TableId(type = IdType.ASSIGN_ID)
+public class OrderItem {
+    //当配置了shardingsphere-jdbc的分布式序列时，自动使用shardingsphere-jdbc的分布式序列
+    @TableId(type = IdType.AUTO)
     private Long id;
     private String orderNo;
     private Long userId;
-    private BigDecimal amount;
+    private BigDecimal price;
+    private Integer count;
 }

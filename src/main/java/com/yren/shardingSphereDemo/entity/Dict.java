@@ -5,19 +5,16 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 /**
  * @author ChenYu ren
- * @date 2025/8/1
+ * @date 2025/8/14
  */
-@TableName("t_order")
+
+@TableName("t_dict")
 @Data
-public class Order {
-//    @TableId(type = IdType.AUTO)
-//    @TableId(type = IdType.ASSIGN_ID)
+public class Dict {
+    //可以使用MyBatisPlus的雪花算法
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-    private String orderNo;
-    private Long userId;
-    private BigDecimal amount;
+    private String dictType;
 }

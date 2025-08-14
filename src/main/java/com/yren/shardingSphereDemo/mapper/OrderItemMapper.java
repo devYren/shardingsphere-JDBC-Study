@@ -1,16 +1,13 @@
 package com.yren.shardingSphereDemo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.yren.shardingSphereDemo.entity.Dept;
+import com.yren.shardingSphereDemo.entity.OrderItem;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * @author ChenYu ren
- * @date 2025/7/18
+ * @date 2025/8/13
  */
 
 @Mapper
-public interface DeptMapper extends BaseMapper<Dept> {
-
-
-}
+public interface OrderItemMapper extends BaseMapper<OrderItem> {}

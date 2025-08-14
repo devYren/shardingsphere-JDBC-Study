@@ -55,7 +55,7 @@ rules:
     # 逻辑表名称
     t_order:
       actualDataNodes: server-order${0..1}.t_order${0..1} # 由数据源名 + 表名组成（参考 Inline 语法规则）
-      databaseStrategy: #分库配置 缺省表示使用默认分库策略，分片策略只能选其一
+      databaseStrategy: #分库策略 缺省表示使用默认分库策略，分片策略只能选其一
         standard: # 用于单分片键的标准分片场景
           shardingColumn: user_id # 分片列名称
           shardingAlgorithmName: database_inline  # 分片算法名称（自定义）会与下方shardingAlgorithms对应
@@ -63,9 +63,26 @@ rules:
         standard:
           shardingColumn: order_no
           shardingAlgorithmName: t_order_inline # 分片算法名称（自定义）会与下方shardingAlgorithms对应
-#      keyGenerateStrategy: # 分布式序列策略
-#        column: id # 自增列名称，缺省表示不使用自增主键生成器
-#        keyGeneratorName: snowflake # 分布式序列算法名称,这里是个名字，下边(shardingAlgorithms)有定义
+      keyGenerateStrategy: # 分布式序列策略
+        column: id # 自增列名称，缺省表示不使用自增主键生成器
+        keyGeneratorName: snowflake # 分布式序列算法名称,这里是个名字，下边(shardingAlgorithms)有定义
+
+    # 逻辑表名称
+    t_order_item:
+      actualDataNodes: server-order${0..1}.t_order_item${0..1}
+      databaseStrategy: #分库策略 缺省表示使用默认分库策略，分片策略只能选其一
+        standard: # 用于单分片键的标准分片场景
+          shardingColumn: user_id # 分片列名称
+          shardingAlgorithmName: database_inline  # 分片算法名称（自定义）会与下方shardingAlgorithms对应
+      tableStrategy: # 分表策略，同分库策略
+        standard:
+          shardingColumn: order_no
+          shardingAlgorithmName: t_order_inline # 分片算法名称（自定义）会与下方shardingAlgorithms对应
+      keyGenerateStrategy: # 分布式序列策略
+        column: id # 自增列名称，缺省表示不使用自增主键生成器
+        keyGeneratorName: snowflake # 分布式序列算法名称,这里是个名字，下边(shardingAlgorithms)有定义
+  bindingTables:  # 绑定表规则列表
+    - t_order,t_order_item #逻辑表名1,逻辑表名2,逻辑表名3
 
 #  defaultDatabaseStrategy: #默认数据库分片策略
 #  defaultTableStrategy: #默认的表分片策略
@@ -78,21 +95,28 @@ rules:
       type: INLINE # 分片算法类型,有多钟可参考官网 https://shardingsphere.apache.org/document/5.5.2/cn/user-manual/common-config/builtin-algorithm/sharding/
       props: # 分片算法属性配置
         algorithm-expression: server-order${user_id % 2} #根据用户id 对2（因为有2个数据库）取余数，type 为INLINE 的表达式写发可以找官网
-    t_order_inline: # 自定义的算法名称，上边有用到
-      type: CLASS_BASED
-      props:
-        strategy: STANDARD
-        # 下边类是自己写的就是自定义分片算法，这个是shardingsphere 自带的
-        # 就是对分片字段（在使用t_order_inline的算法那里有定义） hash 在通过sharding-count的数量取余分片
-        algorithmClassName: org.apache.shardingsphere.sharding.algorithm.sharding.mod.HashModShardingAlgorithm
-        sharding-count: 2
 
-#  keyGenerators:
-#    snowflake:
-#      type: SNOWFLAKE
-#      props:
-#        worker-id: 123  # 工作节点 ID
-#        max-tolerate-time-difference-milliseconds: 100
+    t_order_inline: # 自定义的算法名称，上边有用到
+      type: CLASS_BASED #表示这个分片算法是基于自定义的Java类实现的分片算法。
+      props: #算法的属性配置，传递给分片算法类的参数
+        strategy: STANDARD
+        # 指定具体用来做分片的Java类，这里使用的是ShardingSphere自带的基于 hash取模 的分片算法。
+        # 这个算法的作用是：对分片字段（比如订单ID）进行hash计算，然后对分片数量取模，决定数据应该路由到哪个分片。
+        algorithmClassName: org.apache.shardingsphere.sharding.algorithm.sharding.mod.HashModShardingAlgorithm
+        sharding-count: 2 #指定分片总数为2，即分成2个分片。
+  keyGenerators:
+    snowflake: # 分布式序列算法名称
+      type: SNOWFLAKE #分布式序列算法类型 - 雪花算法
+#     props: # 分布式序列算法属性配置
+#       worker-id: 123  # 工作节点 ID
+#       max-tolerate-time-difference-milliseconds: 100
+#    uuid:
+#      type: UUID #分布式序列算法类型 - UUID
+
+- !BROADCAST
+  tables: # 广播表规则列表
+    - t_dict
+
 #通用配置
 props:
   sql-show: true #是否在日志中打印 SQL打印 SQL 可以帮助开发者快速定位系统问题。日志内容包含：逻辑 SQL，真实 SQL 和 SQL 解析结果。如果开启配置，日志将使用 Topic ShardingSphere-SQL，日志级别是 INFO
